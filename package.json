@@ -1,0 +1,94 @@
+{
+  
+  "name": "rl-mechanics-api",
+  
+  "description": "",
+  
+  "version": "1.0.0",
+  
+  "main": "app.js",
+  
+  "dependencies": {
+  
+    
+  "async": "^3.2.4",
+  
+    
+  "bcryptjs": "^2.4.3",
+  
+    
+  "charset": "^1.0.1",
+  
+    
+  "cookie-parser": "^1.4.6",
+  
+    
+  "cors": "^2.8.5",
+  
+    
+  "dotenv": "^16.0.3",
+  
+    
+  "express": "^4.18.2",
+  
+    
+  "express-session": "^1.17.3",
+  
+    
+  "express-validator": "^6.15.0",
+  
+    
+  "jsonwebtoken": "^9.0.0",
+  
+    
+  "morgan": "^1.10.0",
+  
+    
+  "nodemon": "^2.0.22",
+  
+    
+  "passport": "^0.6.0",
+  
+    
+  "passport-local": "^1.0.0",
+  
+    
+  "pg": "^8.10.0"
+  
+  },
+  
+  "scripts": {
+  
+    
+  "start": "node app.js",
+  
+    
+  "devStart": "nodemon app.js"
+  
+  },
+  
+  "repository": {
+  
+    
+  "type": "git",
+  
+    
+  "url": "git+https://github.com/sycodes95/rl-mechanics-api.git"
+  
+  },
+  
+  "keywords": [],
+  
+  "author": "",
+  
+  "license": "ISC",
+  
+  "bugs": {
+  
+    
+  "url": "https://github.com/sycodes95/rl-mechanics-api/issues"
+  
+  },
+  
+  "homepage": "https://github.com/sycodes95/rl-mechanics-api#readme"
+}
