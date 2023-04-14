@@ -26,12 +26,8 @@ app.use(session({ secret: "dogs", resave: false, saveUninitialized: true }));
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.urlencoded({ extended: false }));
-app.use(cors({credentials: true, origin: [
-  'http://localhost:3000', 
-  'http://localhost:3001', 
-  'http://localhost:3002', 
-  'http://localhost:5173/', 
-]}));
+app.use(cors({credentials: true, origin: 'http://localhost:5173'}));
+
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);

@@ -35,7 +35,7 @@ exports.verify_token_get = (req,res,next) => {
   }
 }
 
-exports.sign_up_post = [
+exports.register_post = [
   body('user_email').isEmail(),
   check('user_password').exists(),
   check('user_confirm_password')
