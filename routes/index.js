@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const mechanics_controller = require('../controllers/mechanicsController')
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.json('index', { title: 'Express' });
-});
+router.post('/mechanics-post', mechanics_controller.mechanics_post)
 
 module.exports = router;
+ 
