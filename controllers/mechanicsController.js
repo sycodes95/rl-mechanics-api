@@ -61,7 +61,6 @@ exports.mechanics_get = (req, res, next) => {
       mech_difficulty::text ILIKE $${queryParams.length + 1} OR
       mech_importance::text ILIKE $${queryParams.length + 1})
       `
-
       queryParams.push(searchValue)
     }
 
@@ -90,7 +89,6 @@ exports.mechanics_get = (req, res, next) => {
       }
     }
   }
-  console.log('text',queryText, 'params', queryParams);
 
   pool.query(queryText, queryParams, (err, result) => {
 
@@ -99,4 +97,15 @@ exports.mechanics_get = (req, res, next) => {
     return res.json({mechanics: result.rows})
       
   })
+}
+
+exports.mechanics_delete = (req, res) => {
+  const { mech_id } = req.query
+  const queryText = `DELETE FROM mechanics WHERE mech_id = ${mech_id}`
+
+  pool.query(queryText, (err, result) => {
+    if(err) return res.json(err)
+    return res.json({mechanics: result.rows})
+  })
+
 }
