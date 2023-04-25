@@ -104,8 +104,35 @@ exports.mechanics_delete = (req, res) => {
   const queryText = `DELETE FROM mechanics WHERE mech_id = ${mech_id}`
 
   pool.query(queryText, (err, result) => {
-    if(err) return res.json(err)
-    return res.json({mechanics: result.rows})
+    if(err) return res.status(500).json({message: "An error occurred while deleting the mechanic"})
+    return res.json({mechanics: result.rowCount})
   })
 
+}
+
+exports.mechanics_patch = (req, res) => {
+
+  let updateText =`UPDATE mechanics`
+  let setText = ``
+  let whereText = ` WHERE mech_id = $1`;
+  let queryParams = [req.body.mech_id];
+  let index = 2;
+
+  Object.keys(req.body).map(col =>{
+    if (col !== "mech_id") {
+      if(index === 2) setText += ' SET '
+      setText += `${setText && index !== 2 ? "," : ""} ${col} = $${index}`;
+      queryParams.push(req.body[col]);
+      index++;
+    }
+
+  })
+  
+  let queryText = updateText + setText + whereText + ';';
+  console.log(queryText);
+  console.log(queryParams);
+  pool.query(queryText, queryParams, (err, result) =>{
+    if(err) return res.json({ errors: err})
+    res.json(result)
+  })
 }
