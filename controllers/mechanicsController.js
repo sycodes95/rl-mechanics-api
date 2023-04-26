@@ -38,7 +38,7 @@ exports.mechanics_post = (req, res, next) => {
 
 exports.mechanics_get = (req, res, next) => {
 
-  let { searchValue, filterValues } = req.query
+  let { searchValue, filterValues, selectedSortColumn } = req.query
   
   if(searchValue === 'null') searchValue = null
   if(filterValues === 'null'){
@@ -46,6 +46,7 @@ exports.mechanics_get = (req, res, next) => {
   } else {
     filterValues = JSON.parse(filterValues)
   }
+  selectedSortColumn = JSON.parse(selectedSortColumn)
 
   let queryText = `SELECT * FROM mechanics`
   let queryParams = []
@@ -88,6 +89,17 @@ exports.mechanics_get = (req, res, next) => {
         
       }
     }
+  }
+
+  if(selectedSortColumn){
+    queryText += ` ORDER BY ${selectedSortColumn.column} `
+    if(selectedSortColumn.value === true){
+      queryText += `DESC;`
+    } else {
+      queryText += `ASC;`
+    }
+  } else {
+    queryText += ` ORDER BY mech_created_at DESC;`
   }
 
   pool.query(queryText, queryParams, (err, result) => {
