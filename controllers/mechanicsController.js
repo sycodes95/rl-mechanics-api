@@ -91,7 +91,7 @@ exports.mechanics_get = (req, res, next) => {
     }
   }
 
-  if(selectedSortColumn){
+  if(selectedSortColumn.column){
     queryText += ` ORDER BY ${selectedSortColumn.column} `
     if(selectedSortColumn.value === true){
       queryText += `DESC;`
@@ -101,6 +101,8 @@ exports.mechanics_get = (req, res, next) => {
   } else {
     queryText += ` ORDER BY mech_created_at DESC;`
   }
+
+  console.log(queryText);
 
   pool.query(queryText, queryParams, (err, result) => {
 
