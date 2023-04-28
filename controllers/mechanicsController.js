@@ -38,7 +38,7 @@ exports.mechanics_post = (req, res, next) => {
 
 exports.mechanics_get = (req, res, next) => {
 
-  let { searchValue, filterValues, selectedSortColumn } = req.query
+  let { searchValue, filterValues, selectedSortColumn, paginationData } = req.query
   
   if(searchValue === 'null') searchValue = null
   if(filterValues === 'null'){
@@ -46,15 +46,17 @@ exports.mechanics_get = (req, res, next) => {
   } else {
     filterValues = JSON.parse(filterValues)
   }
+  console.log(paginationData);
   selectedSortColumn = JSON.parse(selectedSortColumn)
-
+  paginationData = JSON.parse(paginationData)
+  console.log(paginationData);
   let queryText = `SELECT * FROM mechanics`
   let queryParams = []
-
+  console.log(paginationData);
   if(searchValue || filterValues) {
     queryText += ` WHERE `;
     if(searchValue) {
-      console.log('search');
+      
 
       queryText += `
       (mech_name::text ILIKE $${queryParams.length + 1} OR
@@ -94,12 +96,21 @@ exports.mechanics_get = (req, res, next) => {
   if(selectedSortColumn.column){
     queryText += ` ORDER BY ${selectedSortColumn.column} `
     if(selectedSortColumn.value === true){
-      queryText += `DESC;`
+      queryText += ` DESC`
     } else {
-      queryText += `ASC;`
+      queryText += ` ASC`
     }
   } else {
-    queryText += ` ORDER BY mech_created_at DESC;`
+    queryText += ` ORDER BY mech_created_at DESC`
+  }
+
+  if(paginationData){
+    queryText += ` LIMIT ${paginationData.pageSize} OFFSET ${paginationData.pageNumber * paginationData.pageSize};`
+    
+    
+    
+  } else {
+    queryText += `;`
   }
 
   console.log(queryText);
