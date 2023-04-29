@@ -1,6 +1,7 @@
 const { filter, filterLimit } = require('async');
 const pool = require('../db');
 const { search } = require('../routes');
+const { query } = require('express');
 
 exports.mechanics_post = (req, res, next) => {
   const queryText = `
@@ -46,13 +47,10 @@ exports.mechanics_get = (req, res, next) => {
   } else {
     filterValues = JSON.parse(filterValues)
   }
-  console.log(paginationData);
   selectedSortColumn = JSON.parse(selectedSortColumn)
   paginationData = JSON.parse(paginationData)
-  console.log(paginationData);
   let queryText = `SELECT * FROM mechanics`
   let queryParams = []
-  console.log(paginationData);
   if(searchValue || filterValues) {
     queryText += ` WHERE `;
     if(searchValue) {
@@ -106,14 +104,10 @@ exports.mechanics_get = (req, res, next) => {
 
   if(paginationData){
     queryText += ` LIMIT ${paginationData.pageSize} OFFSET ${paginationData.pageNumber * paginationData.pageSize};`
-    
-    
-    
   } else {
     queryText += `;`
   }
 
-  console.log(queryText);
 
   pool.query(queryText, queryParams, (err, result) => {
 
@@ -121,6 +115,15 @@ exports.mechanics_get = (req, res, next) => {
 
     return res.json({mechanics: result.rows})
       
+  })
+}
+
+exports.mechanics_count_get = (req, res) => {
+  let queryText = `SELECT * FROM mechanics;`
+  pool.query(queryText, (err, result) => {
+    if(err) return res.json(err)
+    
+    res.json({count : result.rowCount})
   })
 }
 
