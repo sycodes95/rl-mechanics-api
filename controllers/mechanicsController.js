@@ -4,6 +4,7 @@ const { search } = require('../routes');
 const { query } = require('express');
 
 exports.mechanics_post = (req, res, next) => {
+  console.log(req.body)
   const queryText = `
   INSERT INTO mechanics 
   (
@@ -12,9 +13,10 @@ exports.mechanics_post = (req, res, next) => {
    mech_yt_url_controller,
    mech_yt_url_kbm,
    mech_difficulty,
-   mech_importance
+   mech_importance,
+   mech_url
   )
-  VALUES ($1, $2, $3, $4, $5, $6)
+  VALUES ($1, $2, $3, $4, $5, $6, $7)
   RETURNING *
   `;
 
@@ -25,9 +27,10 @@ exports.mechanics_post = (req, res, next) => {
     body.mech_yt_url_controller,
     body.mech_yt_url_kbm, 
     body.mech_difficulty, 
-    body.mech_importance
+    body.mech_importance,
+    body.mech_url
   ]; 
-
+  console.log(queryText, values);
   pool.query(queryText, values, (err, result) => {
 
     if(err) return res.json(err)
@@ -40,29 +43,33 @@ exports.mechanics_post = (req, res, next) => {
 exports.mechanics_get = (req, res, next) => {
 
   let { searchValue, filterValues, selectedSortColumn, paginationData } = req.query
-  
+  console.log(searchValue);
   if(searchValue === 'null') searchValue = null
+  console.log('ccccc');
   if(filterValues === 'null'){
     filterValues = null
   } else {
     filterValues = JSON.parse(filterValues)
   }
+  
   selectedSortColumn = JSON.parse(selectedSortColumn)
   paginationData = JSON.parse(paginationData)
+  
   let queryText = `SELECT * FROM mechanics`
   let queryParams = []
   if(searchValue || filterValues) {
     queryText += ` WHERE `;
     if(searchValue) {
       
-
+      console.log(searchValue);
       queryText += `
-      (mech_name::text ILIKE $${queryParams.length + 1} OR
-      mech_description::text ILIKE $${queryParams.length + 1} OR
-      mech_difficulty::text ILIKE $${queryParams.length + 1} OR
-      mech_importance::text ILIKE $${queryParams.length + 1})
-      `
-      queryParams.push(searchValue)
+      (mech_name::text ILIKE $${queryParams.length + 1}
+      OR mech_description::text ILIKE $${queryParams.length + 1}
+      OR mech_difficulty::text ILIKE $${queryParams.length + 1}
+      OR mech_importance::text ILIKE $${queryParams.length + 1}
+      )`;
+      
+      queryParams.push(`%${searchValue}%`)
     }
 
     if(filterValues) {
@@ -101,21 +108,30 @@ exports.mechanics_get = (req, res, next) => {
   } else {
     queryText += ` ORDER BY mech_created_at DESC`
   }
-
+  
+  const countQueryText = queryText + ';'
+  console.log(countQueryText);
   if(paginationData){
     queryText += ` LIMIT ${paginationData.pageSize} OFFSET ${paginationData.pageNumber * paginationData.pageSize};`
   } else {
     queryText += `;`
   }
-
-
-  pool.query(queryText, queryParams, (err, result) => {
-
+  console.log(queryText, queryParams);
+  pool.query(countQueryText, queryParams, (err, result) => {
+    console.log('first');
     if(err) return res.json(err)
 
-    return res.json({mechanics: result.rows})
-      
+    const count = result.rowCount
+
+    pool.query(queryText, queryParams, (err, result) => {
+      console.log('second');
+      if(err) return res.json(err)
+  
+      return res.json({mechanics: result.rows, count: count})
+        
+    })
   })
+  
 }
 
 exports.mechanics_count_get = (req, res) => {
