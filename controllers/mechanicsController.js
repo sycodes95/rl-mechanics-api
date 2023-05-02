@@ -134,6 +134,16 @@ exports.mechanics_get = (req, res, next) => {
   
 }
 
+exports.mechanic_details_get = (req, res) => {
+  const { mech_url } = req.query
+  let queryText = `SELECT * FROM mechanics WHERE mech_url = $1`
+  let queryValues = [mech_url]
+  pool.query(queryText, queryValues, (err, result) => {
+    if(err) return res.json(err)
+    res.json({details: result.rows[0]})
+  })
+}
+
 exports.mechanics_count_get = (req, res) => {
   let queryText = `SELECT * FROM mechanics;`
   pool.query(queryText, (err, result) => {
