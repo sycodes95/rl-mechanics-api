@@ -14,9 +14,10 @@ exports.mechanics_post = (req, res, next) => {
    mech_yt_url_kbm,
    mech_difficulty,
    mech_importance,
-   mech_url
+   mech_url,
+   mech_family
   )
-  VALUES ($1, $2, $3, $4, $5, $6, $7)
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
   RETURNING *
   `;
 
@@ -28,7 +29,8 @@ exports.mechanics_post = (req, res, next) => {
     body.mech_yt_url_kbm, 
     body.mech_difficulty, 
     body.mech_importance,
-    body.mech_url
+    body.mech_url,
+    body.mech_family
   ]; 
   console.log(queryText, values);
   pool.query(queryText, values, (err, result) => {
