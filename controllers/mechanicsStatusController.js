@@ -1,6 +1,6 @@
 const pool = require('../db');
 
-exports.mechanics_post = (req, res, next) => {
+exports.mechanics_status_post = (req, res, next) => {
   const queryText = `
   INSERT INTO mechanics_status 
   (
