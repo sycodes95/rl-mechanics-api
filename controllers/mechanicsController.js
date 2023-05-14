@@ -136,6 +136,8 @@ exports.mechanics_get = (req, res, next) => {
   
 }
 
+exports.main_mechanics_get
+
 exports.mechanic_details_get = (req, res) => {
   const { mech_url } = req.query
   let queryText = `SELECT * FROM mechanics WHERE mech_url = $1`
