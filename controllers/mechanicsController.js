@@ -140,48 +140,61 @@ exports.mechanics_get = (req, res, next) => {
   const selectedSortColumn = JSON.parse(req.query.selectedSortColumn);
   const paginationData = JSON.parse(req.query.paginationData);
 
-  console.log(searchValue);
-  console.log(filterValues);
-  console.log(selectedSortColumn);
-  console.log(paginationData);
   let queryText = `SELECT * FROM mechanics`
   let queryParams = []
+    
+  if(searchValue) {
+    
+    queryText += queryParams.length ? ' AND ' : ' WHERE ';
 
-  if(searchValue || filterValues) {
-    queryText += ` WHERE `;
-    if(searchValue) {
-      
-      console.log(searchValue);
-      queryText += `
-      (mech_name::text ILIKE $${queryParams.length + 1}
-      OR mech_description::text ILIKE $${queryParams.length + 1}
-      OR mech_difficulty::text ILIKE $${queryParams.length + 1}
-      OR mech_importance::text ILIKE $${queryParams.length + 1}
-      )`;
-      
-      queryParams.push(`%${searchValue}%`)
-    }
-
-    if(filterValues) {
-
-      for(let values in filterValues){
-
-        if(filterValues[values] || queryParams.length > 0){
-
-          if(queryParams.length) queryText += ` AND `
-
-          if(filterValues[values]){
-            queryText += `${values} = $${queryParams.length + 1}`
-            queryParams.push(filterValues[values])
-          }
-        }
-        
-      }
-    }
+    queryText += `
+    (mech_name::text ILIKE $${queryParams.length + 1}
+    OR mech_description::text ILIKE $${queryParams.length + 1}
+    OR mech_difficulty::text ILIKE $${queryParams.length + 1}
+    OR mech_importance::text ILIKE $${queryParams.length + 1}
+    )`;
+    
+    queryParams.push(`%${searchValue}%`)
   }
 
-  console.log(queryText);
-  console.log(queryParams);
+  if (filterValues) {
+    Object.keys(filterValues).forEach(key => {
+      if (filterValues[key]) {
+        queryText += queryParams.length ? ' AND ' : ' WHERE ';
+        queryText += `${key} = $${queryParams.length + 1}`;
+        queryParams.push(filterValues[key]);
+      }
+    });
+  }
+
+  if(selectedSortColumn.column){
+    queryText += ` ORDER BY ${selectedSortColumn.column} `
+    queryText += selectedSortColumn.value ? ` DESC` : ` ASC`;
+  } else {
+    queryText += ` ORDER BY mech_created_at DESC`
+  }
+  
+  const countQueryText = queryText + ';'
+
+  if(paginationData){
+    queryText += ` LIMIT ${paginationData.pageSize} OFFSET ${paginationData.pageNumber * paginationData.pageSize};`
+  } else {
+    queryText += `;`
+  }
+
+  console.log(queryText, queryParams);
+  pool.query(countQueryText, queryParams, (err, result) => {
+    if(err) return res.json(err)
+
+    const count = result.rowCount
+
+    pool.query(queryText, queryParams, (err, result) => {
+      if(err) return res.json(err)
+  
+      return res.json({mechanics: result.rows, count: count})
+        
+    })
+  })
   
 }
 
