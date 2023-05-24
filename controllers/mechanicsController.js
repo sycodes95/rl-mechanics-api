@@ -137,7 +137,7 @@ exports.mechanics_post = (req, res, next) => {
 exports.mechanics_get = (req, res, next) => {
   const searchValue = req.query.searchValue;
   const filterValues = JSON.parse(req.query.filterValues);
-  const selectedSortColumn = JSON.parse(req.query.selectedSortColumn);
+  const sortColumn = JSON.parse(req.query.sortColumn);
   const paginationData = JSON.parse(req.query.paginationData);
 
   let queryText = `SELECT * FROM mechanics`
@@ -167,9 +167,9 @@ exports.mechanics_get = (req, res, next) => {
     });
   }
 
-  if(selectedSortColumn.column){
-    queryText += ` ORDER BY ${selectedSortColumn.column} `
-    queryText += selectedSortColumn.value ? ` DESC` : ` ASC`;
+  if(sortColumn.column){
+    queryText += ` ORDER BY ${sortColumn.column} `
+    queryText += sortColumn.value ? ` DESC` : ` ASC`;
   } else {
     queryText += ` ORDER BY mech_created_at DESC`
   }

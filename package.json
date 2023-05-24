@@ -63,7 +63,7 @@
   "start": "node app.js",
   
     
-  "devStart": "nodemon app.js"
+  "dev": "nodemon app.js"
   
   },
   
