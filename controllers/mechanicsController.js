@@ -14,9 +14,10 @@ exports.mechanics_post = (req, res, next) => {
    mech_difficulty,
    mech_importance,
    mech_url,
-   mech_type
+   mech_type,
+   mech_gif
   )
-  VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
   RETURNING *
   `;
 
@@ -29,7 +30,8 @@ exports.mechanics_post = (req, res, next) => {
     body.mech_difficulty, 
     body.mech_importance,
     body.mech_url,
-    body.mech_type
+    body.mech_type,
+    req.file.filename
   ]; 
   pool.query(queryText, values, (err, result) => {
 
@@ -39,100 +41,6 @@ exports.mechanics_post = (req, res, next) => {
       
   })
 }
-
-// exports.mechanics_get = (req, res, next) => {
-
-//   let { searchValue, filterValues, selectedSortColumn, paginationData } = req.query
-//   console.log(searchValue);
-//   if(searchValue === 'null') searchValue = null
-//   console.log('ccccc');
-//   if(filterValues === 'null'){
-//     filterValues = null
-//   } else {
-//     filterValues = JSON.parse(filterValues)
-//   }
-  
-//   selectedSortColumn = JSON.parse(selectedSortColumn)
-//   paginationData = JSON.parse(paginationData)
-  
-//   let queryText = `SELECT * FROM mechanics`
-//   let queryParams = []
-//   if(searchValue || filterValues) {
-//     queryText += ` WHERE `;
-//     if(searchValue) {
-      
-//       console.log(searchValue);
-//       queryText += `
-//       (mech_name::text ILIKE $${queryParams.length + 1}
-//       OR mech_description::text ILIKE $${queryParams.length + 1}
-//       OR mech_difficulty::text ILIKE $${queryParams.length + 1}
-//       OR mech_importance::text ILIKE $${queryParams.length + 1}
-//       )`;
-      
-//       queryParams.push(`%${searchValue}%`)
-//     }
-
-//     if(filterValues) {
-//       for(let values in filterValues){
-//         if(queryParams.length > 0 && (filterValues[values].firstInput || filterValues[values].secondInput)) queryText += ` AND `
-//         if(filterValues[values].firstInput === '' || filterValues[values].firstInput === 0){
-//           filterValues[values].firstInput = null
-//         } 
-//         if(filterValues[values].secondInput === '' || filterValues[values].secondInput === 0){
-//           filterValues[values].secondInput = null
-//         } 
-//         if(filterValues[values].firstInput && filterValues[values].secondInput) {
-//           queryText += `${values} BETWEEN $${queryParams.length + 1} AND $${queryParams.length + 2}`
-//           queryParams.push(filterValues[values].firstInput, filterValues[values].secondInput)
-//         }
-//         if(filterValues[values].firstInput && !filterValues[values].secondInput) {
-//           queryText += `${values} >= $${queryParams.length + 1}`
-//           queryParams.push(filterValues[values].firstInput)
-//         }
-//         if(filterValues[values].secondInput && !filterValues[values].firstInput) {
-//           queryText += `${values} <= $${queryParams.length + 1}`
-//           queryParams.push(filterValues[values].secondInput)
-//         }
-        
-//       }
-//     }
-//   }
-
-//   if(selectedSortColumn.column){
-//     queryText += ` ORDER BY ${selectedSortColumn.column} `
-//     if(selectedSortColumn.value === true){
-//       queryText += ` DESC`
-//     } else {
-//       queryText += ` ASC`
-//     }
-//   } else {
-//     queryText += ` ORDER BY mech_created_at DESC`
-//   }
-  
-//   const countQueryText = queryText + ';'
-//   console.log(countQueryText);
-//   if(paginationData){
-//     queryText += ` LIMIT ${paginationData.pageSize} OFFSET ${paginationData.pageNumber * paginationData.pageSize};`
-//   } else {
-//     queryText += `;`
-//   }
-//   console.log(queryText, queryParams);
-//   pool.query(countQueryText, queryParams, (err, result) => {
-//     console.log('first');
-//     if(err) return res.json(err)
-
-//     const count = result.rowCount
-
-//     pool.query(queryText, queryParams, (err, result) => {
-//       console.log('second');
-//       if(err) return res.json(err)
-  
-//       return res.json({mechanics: result.rows, count: count})
-        
-//     })
-//   })
-  
-// }
 
 exports.mechanics_get = (req, res, next) => {
   const searchValue = req.query.searchValue;
@@ -190,7 +98,13 @@ exports.mechanics_get = (req, res, next) => {
 
     pool.query(queryText, queryParams, (err, result) => {
       if(err) return res.json(err)
-  
+
+      result.rows.forEach((mechanic) => {
+        if (mechanic.mech_gif) {
+          mechanic.mech_gif_url = `${process.env.UPLOADS}/uploads/${mechanic.mech_gif}`;
+        }
+      });
+      
       return res.json({mechanics: result.rows, count: count})
         
     })

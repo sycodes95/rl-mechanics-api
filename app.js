@@ -31,6 +31,7 @@ app.use(cors({credentials: true, origin: 'http://localhost:5173'}));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 passport.use(
   new LocalStrategy({ usernameField: 'user_email', passwordField: 'user_password' },(user_email, user_password, done) => {
