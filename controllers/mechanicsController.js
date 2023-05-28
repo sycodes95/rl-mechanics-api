@@ -57,8 +57,6 @@ exports.mechanics_get = (req, res, next) => {
     queryText += `
     (mech_name::text ILIKE $${queryParams.length + 1}
     OR mech_description::text ILIKE $${queryParams.length + 1}
-    OR mech_difficulty::text ILIKE $${queryParams.length + 1}
-    OR mech_importance::text ILIKE $${queryParams.length + 1}
     )`;
 
     queryParams.push(`%${searchValue}%`);
@@ -150,24 +148,27 @@ exports.mechanics_patch = (req, res) => {
   let queryParams = [req.body.mech_id];
   let index = 2;
   Object.keys(req.body).map((col) => {
-    console.log(col);
+    console.log(typeof req.body[col], req.body[col]);
     if (col != "mech_id" && col != "mech_gif_url") {
       if (index === 2) setText += " SET ";
       setText += `${setText && index !== 2 ? "," : ""} ${col} = $${index}`;
-      queryParams.push(req.body[col]);
+      if (typeof req.body[col] === "string" && !isNaN(Number(req.body[col]))) {
+        queryParams.push(Number(req.body[col]));
+      } else {
+        queryParams.push(req.body[col]);
+      }
       index++;
     }
   });
 
-
   if (req.file && req.file.filename) {
 
     const gifOnFile = `SELECT mech_gif FROM mechanics WHERE mech_id = $1`
+
     pool.query(gifOnFile, [req.body.mech_id], (err, result) => {
       if (err) {
         return console.error('Error retrieving current GIF filename:', err);
       }
-
       const currentGifFilename = result.rows[0].mech_gif;
       console.log(currentGifFilename);
       if(currentGifFilename && currentGifFilename != req.file.filename){
@@ -182,13 +183,18 @@ exports.mechanics_patch = (req, res) => {
       }
 
     });
-  }
 
-  if (req.file && req.file.filename) {
     if (index === 2) setText += " SET ";
     setText += `${setText && index !== 2 ? "," : ""} mech_gif = $${index}`;
     queryParams.push(req.file.filename);
+    
   }
+
+  // if (req.file && req.file.filename) {
+  //   if (index === 2) setText += " SET ";
+  //   setText += `${setText && index !== 2 ? "," : ""} mech_gif = $${index}`;
+  //   queryParams.push(req.file.filename);
+  // }
 
   let queryText = updateText + setText + whereText + ";";
   console.log(queryText, queryParams);
