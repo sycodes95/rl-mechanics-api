@@ -145,13 +145,11 @@ exports.mechanics_delete = (req, res) => {
 }
 
 exports.mechanics_patch = (req, res) => {
-
   let updateText =`UPDATE mechanics`
   let setText = ``
   let whereText = ` WHERE mech_id = $1`;
   let queryParams = [req.body.mech_id];
   let index = 2;
-
   Object.keys(req.body).map(col =>{
     if (col !== "mech_id") {
       if(index === 2) setText += ' SET '
@@ -161,9 +159,15 @@ exports.mechanics_patch = (req, res) => {
     }
 
   })
+
+  if(req.file.filename){
+    if(index === 2) setText += ' SET '
+    setText += `${setText && index !== 2 ? "," : ""} mech_gif = $${index}`;
+    queryParams.push(req.file.filename);
+  }
   
   let queryText = updateText + setText + whereText + ';';
-  console.log(queryText);
+  console.log(queryText)
   console.log(queryParams);
   pool.query(queryText, queryParams, (err, result) =>{
     if(err) return res.json({ errors: err})
