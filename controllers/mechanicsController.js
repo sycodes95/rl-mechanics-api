@@ -6,6 +6,7 @@ const fs = require("fs");
 const path = require("path");
 
 exports.mechanics_post = (req, res, next) => {
+  console.log(req.body);
   const queryText = `
   INSERT INTO mechanics 
   (
@@ -17,13 +18,17 @@ exports.mechanics_post = (req, res, next) => {
    mech_importance,
    mech_url,
    mech_type,
+   mech_training_packs,
    mech_gif
   )
-  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
   RETURNING *
   `;
 
   const body = req.body;
+
+  const filename = req.file && req.file.filename ? req.file.filename : ""; 
+
   const values = [
     body.mech_name,
     body.mech_description,
@@ -33,8 +38,12 @@ exports.mechanics_post = (req, res, next) => {
     body.mech_importance,
     body.mech_url,
     body.mech_type,
-    req.file.filename,
+    JSON.parse(body.mech_training_packs),
+    filename
   ];
+
+  //"{" + JSON.parse(body.mech_training_packs).join(",") + "}",
+
   pool.query(queryText, values, (err, result) => {
     if (err) return res.json(err);
 
@@ -147,16 +156,23 @@ exports.mechanics_patch = (req, res) => {
   let whereText = ` WHERE mech_id = $1`;
   let queryParams = [req.body.mech_id];
   let index = 2;
+
+  req.body.mech_training_packs = JSON.parse(req.body.mech_training_packs)
+  
   Object.keys(req.body).map((col) => {
-    console.log(typeof req.body[col], req.body[col]);
+
     if (col != "mech_id" && col != "mech_gif_url") {
+
       if (index === 2) setText += " SET ";
       setText += `${setText && index !== 2 ? "," : ""} ${col} = $${index}`;
-      if (typeof req.body[col] === "string" && !isNaN(Number(req.body[col]))) {
+
+      if (req.body[col] && typeof req.body[col] === "string" && !isNaN(Number(req.body[col]))) {
+        //if value is number type
         queryParams.push(Number(req.body[col]));
       } else {
         queryParams.push(req.body[col]);
       }
+
       index++;
     }
   });
