@@ -32,8 +32,8 @@ exports.mechanics_post = (req, res, next) => {
   const values = [
     body.mech_name,
     body.mech_description,
-    body.mech_yt_url_controller,
-    body.mech_yt_url_kbm,
+    JSON.parse(body.mech_yt_url_controller),
+    JSON.parse(body.mech_yt_url_kbm),
     body.mech_difficulty,
     body.mech_importance,
     body.mech_url,
@@ -65,7 +65,7 @@ exports.mechanics_get = (req, res, next) => {
 
     queryText += `
     (mech_name::text ILIKE $${queryParams.length + 1}
-    OR mech_description::text ILIKE $${queryParams.length + 1}
+    OR mech_type::text ILIKE $${queryParams.length + 1}
     )`;
 
     queryParams.push(`%${searchValue}%`);
@@ -157,9 +157,11 @@ exports.mechanics_patch = (req, res) => {
   let queryParams = [req.body.mech_id];
   let index = 2;
 
-  req.body.mech_training_packs = JSON.parse(req.body.mech_training_packs)
   
+  req.body.mech_training_packs = JSON.parse(req.body.mech_training_packs)
+
   Object.keys(req.body).map((col) => {
+    
 
     if (col != "mech_id" && col != "mech_gif_url") {
 
@@ -205,12 +207,6 @@ exports.mechanics_patch = (req, res) => {
     queryParams.push(req.file.filename);
     
   }
-
-  // if (req.file && req.file.filename) {
-  //   if (index === 2) setText += " SET ";
-  //   setText += `${setText && index !== 2 ? "," : ""} mech_gif = $${index}`;
-  //   queryParams.push(req.file.filename);
-  // }
 
   let queryText = updateText + setText + whereText + ";";
   console.log(queryText, queryParams);
