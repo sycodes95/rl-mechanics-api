@@ -159,6 +159,8 @@ exports.mechanics_patch = (req, res) => {
 
   
   req.body.mech_training_packs = JSON.parse(req.body.mech_training_packs)
+  req.body.mech_yt_url_controller = JSON.parse(req.body.mech_yt_url_controller)
+  req.body.mech_yt_url_kbm = JSON.parse(req.body.mech_yt_url_kbm)
 
   Object.keys(req.body).map((col) => {
     
