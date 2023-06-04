@@ -17,5 +17,7 @@ router.delete('/mechanics-delete', mechanics_controller.mechanics_delete)
 
 router.patch('/mechanics-patch', upload.single('mech_gif'), mechanics_controller.mechanics_patch)
 
+router.get('/mechanics-urls-get', mechanics_controller.mechanics_urls_get)
+
 module.exports = router;
  

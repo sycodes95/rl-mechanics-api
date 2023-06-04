@@ -137,6 +137,15 @@ exports.mechanics_count_get = (req, res) => {
   });
 };
 
+exports.mechanics_urls_get = (req, res) => {
+  let queryText = `SELECT mech_name, mech_url FROM mechanics;`;
+  pool.query(queryText, (err, result) => {
+    if (err) return res.json(err);
+
+    res.json({ urls : result.rows});
+  });
+};
+
 exports.mechanics_delete = (req, res) => {
   const { mech_id } = req.query;
   const queryText = `DELETE FROM mechanics WHERE mech_id = ${mech_id}`;
