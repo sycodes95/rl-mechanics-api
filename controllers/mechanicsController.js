@@ -19,9 +19,10 @@ exports.mechanics_post = (req, res, next) => {
    mech_url,
    mech_type,
    mech_training_packs,
+   mech_prerequisites,
    mech_gif
   )
-  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
   RETURNING *
   `;
 
@@ -39,6 +40,7 @@ exports.mechanics_post = (req, res, next) => {
     body.mech_url,
     body.mech_type,
     JSON.parse(body.mech_training_packs),
+    JSON.parse(body.mech_prerequisites),
     filename
   ];
 
@@ -167,9 +169,11 @@ exports.mechanics_patch = (req, res) => {
   let index = 2;
 
   
-  req.body.mech_training_packs = JSON.parse(req.body.mech_training_packs)
+  
   req.body.mech_yt_url_controller = JSON.parse(req.body.mech_yt_url_controller)
   req.body.mech_yt_url_kbm = JSON.parse(req.body.mech_yt_url_kbm)
+  req.body.mech_training_packs = JSON.parse(req.body.mech_training_packs)
+  req.body.mech_prerequisites = JSON.parse(req.body.mech_prerequisites)
 
   Object.keys(req.body).map((col) => {
     
