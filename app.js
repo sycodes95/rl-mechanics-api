@@ -91,17 +91,14 @@ app.use(function(err, req, res, next) {
   res.json('error');
 });
 
-app.get('/.well-known/pki-validation/', (req,res) => {
+app.get('/.well-known/pki-validation/CAF95086B332E21D93D4955E61C1091B.txt', (req,res) => {
   res.sendFile('CAF95086B332E21D93D4955E61C1091B.txt')
 })
 
-const port = process.env.PORT || 5000;
+const port = 3000;
 
 app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
 });
-
-const httpsServer = https.createServer(cred, app)
-httpsServer.listen(443)
 
 module.exports = app;
