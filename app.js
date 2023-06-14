@@ -10,12 +10,17 @@ const bcrypt = require("bcryptjs")
 const jwt = require('jsonwebtoken')
 const cors = require('cors')
 const pool = require('./db')
+const https = require('https')
+const fs = require('fs')
 require('dotenv').config()
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 
 const app = express();
+
+const key = fs.readFileSync('./CAF95086B332E21D93D4955E61C1091B.txt')
+const cert = fs.readFileSync('')
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -86,10 +91,17 @@ app.use(function(err, req, res, next) {
   res.json('error');
 });
 
+app.get('/.well-known/pki-validation/', (req,res) => {
+  res.sendFile('CAF95086B332E21D93D4955E61C1091B.txt')
+})
+
 const port = process.env.PORT || 5000;
 
 app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
 });
+
+const httpsServer = https.createServer(cred, app)
+httpsServer.listen(443)
 
 module.exports = app;
