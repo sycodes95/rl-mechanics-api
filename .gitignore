@@ -1,3 +1,5 @@
 .env
 dbtables.sql
 /uploads/
+/ssl/
+/ec2-ssh/

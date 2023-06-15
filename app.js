@@ -19,9 +19,6 @@ const usersRouter = require('./routes/users');
 
 const app = express();
 
-const key = fs.readFileSync('./CAF95086B332E21D93D4955E61C1091B.txt')
-const cert = fs.readFileSync('')
-
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -91,13 +88,10 @@ app.use(function(err, req, res, next) {
   res.json('error');
 });
 
-app.get('/.well-known/pki-validation/CAF95086B332E21D93D4955E61C1091B.txt', (req,res) => {
-  res.sendFile('CAF95086B332E21D93D4955E61C1091B.txt')
-})
 
-const port = 3000;
+const port = 5000;
 
-app.listen(port, () => {
+app.listen(process.env.PORT || port, () => {
   console.log(`Server is listening on port ${port}`);
 });
 
