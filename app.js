@@ -28,12 +28,21 @@ app.use(session({ secret: "dogs", resave: false, saveUninitialized: true }));
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.urlencoded({ extended: false }));
-app.use(cors({credentials: true, origin: 'http://localhost:5173'}));
+app.use(cors({credentials: true, origin: ['http://localhost:5173', 'https://rl-mechanics-production.up.railway.app']}));
 
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+//cert file locations on EC2 instance
+const key = fs.readFileSync(`${process.env.PRIVATE_KEY_PATH}`)
+const cert = fs.readFileSync(`${process.env.CERTIFICATE_CRT_PATH}`)
+
+const cred = {
+  key,
+  cert
+}
 
 passport.use(
   new LocalStrategy({ usernameField: 'user_email', passwordField: 'user_password' },(user_email, user_password, done) => {
@@ -94,5 +103,8 @@ const port = 5000;
 app.listen(process.env.PORT || port, () => {
   console.log(`Server is listening on port ${port}`);
 });
+
+const httpsServer = https.createServer(cred, app)
+httpsServer.listen(8443)
 
 module.exports = app;
