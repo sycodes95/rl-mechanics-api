@@ -6,7 +6,6 @@ const fs = require("fs");
 const path = require("path");
 
 exports.mechanics_post = (req, res, next) => {
-  console.log(req.body);
   const queryText = `
   INSERT INTO mechanics 
   (
@@ -28,23 +27,25 @@ exports.mechanics_post = (req, res, next) => {
 
   const body = req.body;
 
-  const filename = req.file && req.file.filename ? req.file.filename : ""; 
-
+  //check if mech_gif is not empty, if it has a url then add /ifr to transform it to a iframe link
+  if(req.body.mech_gif && !req.body.mech_gif.includes('.com/ifr/')){
+    let gifUrl = req.body.mech_gif.split('.com/')
+    req.body.mech_gif = gifUrl[0] + '.com/ifr/' + gifUrl[1]
+  }
+  
   const values = [
     body.mech_name,
     body.mech_description,
-    JSON.parse(body.mech_yt_url_controller),
-    JSON.parse(body.mech_yt_url_kbm),
+    body.mech_yt_url_controller,
+    body.mech_yt_url_kbm,
     body.mech_difficulty,
     body.mech_importance,
     body.mech_url,
     body.mech_type,
-    JSON.parse(body.mech_training_packs),
-    JSON.parse(body.mech_prerequisites),
-    filename
+    body.mech_training_packs,
+    body.mech_prerequisites,
+    body.mech_gif
   ];
-
-  //"{" + JSON.parse(body.mech_training_packs).join(",") + "}",
 
   pool.query(queryText, values, (err, result) => {
     if (err) return res.json(err);
@@ -109,11 +110,11 @@ exports.mechanics_get = (req, res, next) => {
     pool.query(queryText, queryParams, (err, result) => {
       if (err) return res.json(err);
 
-      result.rows.forEach((mechanic) => {
-        if (mechanic.mech_gif) {
-          mechanic.mech_gif_url = `${process.env.UPLOADS}/${mechanic.mech_gif}`;
-        }
-      });
+      // result.rows.forEach((mechanic) => {
+      //   if (mechanic.mech_gif) {
+      //     mechanic.mech_gif_url = `${process.env.UPLOADS}/${mechanic.mech_gif}`;
+      //   }
+      // });
 
       return res.json({ mechanics: result.rows, count: count });
     });
@@ -168,17 +169,17 @@ exports.mechanics_patch = (req, res) => {
   let queryParams = [req.body.mech_id];
   let index = 2;
 
-  
-  
-  req.body.mech_yt_url_controller = JSON.parse(req.body.mech_yt_url_controller)
-  req.body.mech_yt_url_kbm = JSON.parse(req.body.mech_yt_url_kbm)
-  req.body.mech_training_packs = JSON.parse(req.body.mech_training_packs)
-  req.body.mech_prerequisites = JSON.parse(req.body.mech_prerequisites)
-
   Object.keys(req.body).map((col) => {
-    
 
-    if (col != "mech_id" && col != "mech_gif_url") {
+    if (col != "mech_id") {
+
+      if(col === 'mech_gif'){
+        //check if mech_gif is not empty, if it has a url then add /ifr to transform it to a iframe link
+        if(req.body[col] && !req.body[col].includes('.com/ifr/')){
+          let gifUrl = req.body[col].split('.com/')
+          req.body[col] = gifUrl[0] + '.com/ifr/' + gifUrl[1]
+        }
+      }
 
       if (index === 2) setText += " SET ";
       setText += `${setText && index !== 2 ? "," : ""} ${col} = $${index}`;
@@ -194,37 +195,8 @@ exports.mechanics_patch = (req, res) => {
     }
   });
 
-  if (req.file && req.file.filename) {
-
-    const gifOnFile = `SELECT mech_gif FROM mechanics WHERE mech_id = $1`
-
-    pool.query(gifOnFile, [req.body.mech_id], (err, result) => {
-      if (err) {
-        return console.error('Error retrieving current GIF filename:', err);
-      }
-      const currentGifFilename = result.rows[0].mech_gif;
-      console.log(currentGifFilename);
-      if(currentGifFilename && currentGifFilename != req.file.filename){
-
-        fs.unlink(`./uploads/${currentGifFilename}`, (err) => {
-          if (err) {
-            console.error('Error deleting old GIF file:', err);
-          } else {
-            console.log('Old GIF file deleted successfully');
-          }
-        });
-      }
-
-    });
-
-    if (index === 2) setText += " SET ";
-    setText += `${setText && index !== 2 ? "," : ""} mech_gif = $${index}`;
-    queryParams.push(req.file.filename);
-    
-  }
 
   let queryText = updateText + setText + whereText + ";";
-  console.log(queryText, queryParams);
   pool.query(queryText, queryParams, (err, result) => {
     if (err) return res.json({ errors: err });
     res.json({ mechanic: result });
