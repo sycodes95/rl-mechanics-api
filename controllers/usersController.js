@@ -96,6 +96,44 @@ exports.register_post = [
   }
 ];
 
+// exports.google_log_in_post = (req, res, next) =>{
+//   passport.authenticate("google", (errors, user) =>{
+//     if(errors) {
+      
+//       return next(errors)
+//     }
+//     if(user.length === 0 || !user){
+//       return res.json('no user')
+//     }
+//     req.logIn(user, (errors) =>{
+//       if(errors) {
+        
+//         return next(errors)
+//       }
+      
+//       const token = jwt.sign({ user: user}, process.env.JWT_SECRETKEY);
+      
+//       return res.json({token})
+//     })
+//   })(req,res,next)
+// }
+
+exports.google_log_in_post = passport.authenticate("google", (errors, user) => {
+  if (errors) {
+    return next(errors);
+  }
+  if (!user) {
+    return res.json('no user');
+  }
+  req.logIn(user, (error) => {
+    if (error) {
+      return next(error);
+    }
+    const token = jwt.sign({ user: user }, process.env.JWT_SECRETKEY);
+    return res.json({ token });
+  });
+});
+
 exports.log_in_post = (req, res, next) =>{
   passport.authenticate("local", (errors, user) =>{
     console.log(user);
@@ -113,6 +151,7 @@ exports.log_in_post = (req, res, next) =>{
       }
       
       const token = jwt.sign({ user: user}, process.env.JWT_SECRETKEY);
+
       return res.json({token})
     })
   })(req,res,next)
