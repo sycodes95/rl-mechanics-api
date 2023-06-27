@@ -123,13 +123,14 @@ const googleStrategy = new GoogleStrategy(
           if (error) {
             return done(error);
           }
-          console.log('result', result);
-          const createdUser = result.rows[0];
+          const token = jwt.sign({ user: result }, process.env.JWT_SECRETKEY);
+          request.token = token
           return done(null, result);
         });
       } else {
+        const token = jwt.sign({ user: user }, process.env.JWT_SECRETKEY);
+        request.token = token
         console.log('user', user);
-        const existingUser = user.rows[0];
         return done(null, user);
       }
     });
@@ -140,12 +141,12 @@ passport.use("local", localStrategy);
 passport.use("google", googleStrategy);
 
 app.get('/auth/google', passport.authenticate('google', ['email', 'profile']))
-// app.get('/auth/google/callback', 
-//   passport.authenticate('google', { failureRedirect: 'http://localhost:5173/log-in' }),
-//   function(req, res) {
-//     const token = jwt.sign({ user: req.user }, process.env.JWT_SECRETKEY);
-//     res.json({token});
-//   });
+app.get('/auth/google/callback', 
+  passport.authenticate('google', { failureRedirect: `${process.env.CLIENT_DOMAIN}/log-in` }),
+  function(req, res) {
+    res.cookie('token', req.token, { httpOnly: true });
+    res.redirect(`${process.env.CLIENT_DOMAIN}`);
+  });
 
 
 passport.serializeUser(function(user, done) {
