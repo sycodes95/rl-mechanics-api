@@ -31,7 +31,15 @@ app.use(session({ secret: "dogs", resave: false, saveUninitialized: true }));
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.urlencoded({ extended: false }));
-app.use(cors({credentials: true, origin: ['http://localhost:5173', 'https://rl-mechanics-production.up.railway.app', 'https://rlmechanics.com']}));
+app.use(cors({
+  credentials: true,
+  origin: [
+  'http://localhost:5173',
+  'https://rl-mechanics-production.up.railway.app',
+  'https://rlmechanics.com'
+  ]
+}));
+
 
 
 
@@ -48,7 +56,7 @@ const cred = {
   cert
 }
 
-const localStrategy = new LocalStrategy({ usernameField: 'user_email', passwordField: 'user_password' }, (user_email, user_password, done) => {
+const localStrategy = new LocalStrategy({ usernameField: 'user_email'}, (user_email,  done) => {
   pool.query('SELECT * FROM users WHERE user_email = $1', [user_email], (err, user) => {
     if (err) {
       return done(err);
@@ -66,78 +74,19 @@ const localStrategy = new LocalStrategy({ usernameField: 'user_email', passwordF
   });
 });
 
-const googleStrategy = new GoogleStrategy(
-  {
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: 'http://localhost:5000/auth/google/callback',
-    passReqToCallback : true,
-    scope: ['email', 'profile']
-  },
-  (request, accessToken, refreshToken, profile, done) => {
-    pool.query('SELECT * FROM users WHERE user_email = $1', [profile._json.email], (err, user) => {
-      if (err) {
-        return done(err);
-      }
-      if (user.rows.length === 0) {
-        // User doesn't exist in the database, create a new user
-        
-        const queryText = `
-          INSERT INTO users
-          ( 
-            user_email, 
-            user_first_name, 
-            user_last_name, 
-            user_is_verified
-          ) 
-          VALUES ($1, $2, $3, $4) 
-          RETURNING *`;
-
-        const values = [
-          profile._json.email,
-          profile._json.given_name,
-          profile._json.family_name,
-          true
-        ];
-
-        pool.query(queryText, values, (error, result) => {
-          if (error) {
-            return done(error);
-          }
-          console.log('result', result);
-          const createdUser = result.rows[0];
-          return done(null, result);
-        });
-      } else {
-        console.log('user', user);
-        const existingUser = user.rows[0];
-        return done(null, user);
-      }
-    });
-  }
-);
-
+const googleStrategy = new LocalStrategy({usernameField: 'user_email', passwordField: 'user_first_name'}, (user_email, user_first_name,  done) => {
+  
+  pool.query('SELECT * FROM users WHERE user_email = $1', [user_email], (err, user) => {
+    if (err) {
+      return done(err);
+    }
+    return done(null, user);
+    
+  });
+});
 
 passport.use("local", localStrategy);
 passport.use("google", googleStrategy);
-
-app.get('/auth/google', passport.authenticate('google', ['email', 'profile']))
-app.get('/auth/google/callback', 
-  passport.authenticate('google', {
-    successRedirect: 'http://localhost:5173',
-    failureRedirect: '/auth/google/failure'
-  })
-);
-
-app.get('/auth/google/success', (req,res) => {
-  console.log('suc');
-  res.send('success')
-})
-
-app.get('/auth/google/failure', (req,res) => {
-  console.log('fail');
-  res.send('failure')
-})
 
 passport.serializeUser(function(user, done) {
   console.log('ser');

@@ -96,45 +96,66 @@ exports.register_post = [
   }
 ];
 
-// exports.google_log_in_post = (req, res, next) =>{
-//   passport.authenticate("google", (errors, user) =>{
-//     if(errors) {
-      
-//       return next(errors)
-//     }
-//     if(user.length === 0 || !user){
-//       return res.json('no user')
-//     }
-//     req.logIn(user, (errors) =>{
-//       if(errors) {
-        
-//         return next(errors)
-//       }
-      
-//       const token = jwt.sign({ user: user}, process.env.JWT_SECRETKEY);
-      
-//       return res.json({token})
-//     })
-//   })(req,res,next)
-// }
+exports.google_log_in_post = (req, res, next) =>{
+  const {
+    user_email,
+    user_first_name,
+    user_last_name,
+    user_picture
+  } = req.body
 
-exports.google_log_in_post = passport.authenticate("google", (errors, user) => {
-  if (errors) {
-    return next(errors);
-  }
-  if (!user) {
-    return res.json('no user');
-  }
-  req.logIn(user, (error) => {
-    if (error) {
-      return next(error);
+  pool.query('SELECT * FROM users WHERE user_email = $1', [user_email], (err, user) => {
+    if(user.rows.length === 0){
+      const queryText = `
+        INSERT INTO users
+        ( 
+          user_email, 
+          user_first_name, 
+          user_last_name, 
+          user_is_verified
+        ) 
+        VALUES ($1, $2, $3, $4) 
+        RETURNING *`;
+
+      const values = [
+        user_email,
+        user_first_name,
+        user_last_name,
+        true
+      ];
+
+      pool.query(queryText, values, (error, result) => {
+        if (error) {
+          return next(error);
+        }
+        console.log('result', result);
+        
+      });
     }
-    const token = jwt.sign({ user: user }, process.env.JWT_SECRETKEY);
-    return res.json({ token });
-  });
-});
+    passport.authenticate("google", (errors, user) =>{
+      if(errors) {
+        return next(errors)
+      }
+      console.log(user);
+      if(user.length === 0 || !user){
+        return res.json('no user')
+      }
+      req.logIn(user, (errors) =>{
+        if(errors) {
+          
+          return next(errors)
+        }
+        
+        const token = jwt.sign({ user: user}, process.env.JWT_SECRETKEY);
+        
+        return res.json({token})
+      })
+    })(req,res,next)
+  })
+}
 
 exports.log_in_post = (req, res, next) =>{
+  console.log(req.body);
   passport.authenticate("local", (errors, user) =>{
     console.log(user);
     if(errors) {
