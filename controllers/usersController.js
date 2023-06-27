@@ -10,16 +10,40 @@ const { check, body, validationResult } = require("express-validator");
 
 require('dotenv').config()
 
+// exports.verify_token_get = (req,res,next) => {
+  
+//   const bearerHeader = req.headers['authorization'];
+  
+//   if(typeof bearerHeader !== 'undefined'){
+//     const bearer = bearerHeader.split(' ')
+//     const bearerToken = bearer[1];
+    
+//     jwt.verify(bearerToken, process.env.JWT_SECRETKEY, (err, user)=>{
+      
+//       if(err) { 
+//         return res.status(401).json({error: "Invalid token"});
+//       } else {
+        
+//         res.json({
+//           message: 'User authorized',
+//           user
+//         })
+//       }
+//     })
+//   } else {
+//     return res.status(401).json({error: "Invalid token"}); 
+//   }
+// }
+
 exports.verify_token_get = (req,res,next) => {
   
-  const bearerHeader = req.headers['authorization'];
+  const token = req.cookies['token'];
   
-  if(typeof bearerHeader !== 'undefined'){
-    const bearer = bearerHeader.split(' ')
-    const bearerToken = bearer[1];
-    
-    jwt.verify(bearerToken, process.env.JWT_SECRETKEY, (err, user)=>{
-      
+  if(token){
+    console.log('verify', token);
+    jwt.verify(token, process.env.JWT_SECRETKEY, (err, user)=>{
+      user = user.user.rows[0]
+      delete user.user_password
       if(err) { 
         return res.status(401).json({error: "Invalid token"});
       } else {
@@ -171,9 +195,14 @@ exports.log_in_post = (req, res, next) =>{
         return next(errors)
       }
       
-      const token = jwt.sign({ user: user}, process.env.JWT_SECRETKEY);
+      // const token = jwt.sign({ user: user}, process.env.JWT_SECRETKEY);
+      
+      // return res.json({token})
+      const token = jwt.sign( {user}, process.env.JWT_SECRETKEY, {expiresIn: '1D'} );
 
-      return res.json({token})
+      res.cookie('token', token, { httpOnly: true });
+
+      return res.json({ status: 'Logged in' });
     })
   })(req,res,next)
 }
