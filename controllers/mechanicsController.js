@@ -55,13 +55,32 @@ exports.mechanics_post = (req, res, next) => {
 };
 
 exports.mechanics_get = (req, res, next) => {
+  const user_id = Number(req.query.user_id)
   const searchValue = req.query.searchValue;
   const filterValues = JSON.parse(req.query.filterValues);
   const sortColumn = JSON.parse(req.query.sortColumn);
   const paginationData = JSON.parse(req.query.paginationData);
+  
+  const mechanic_status_value = Number(filterValues.mechanic_status_value);
 
-  let queryText = `SELECT * FROM mechanics`;
+  
+
+  let queryText = `SELECT m.* FROM mechanics AS m`;
   let queryParams = [];
+
+  if(user_id && mechanic_status_value){
+
+    queryText += ` JOIN mechanics_status AS ms ON m.mech_id = ms.mech_id` 
+
+    queryText += ` WHERE ms.user_id = $${queryParams.length + 1}`;
+
+    queryParams.push(user_id)
+
+    queryText += ` AND ms.mechanic_status_value = $${queryParams.length + 1}`
+
+    queryParams.push(mechanic_status_value)
+    
+  }
 
   if (searchValue) {
     queryText += queryParams.length ? " AND " : " WHERE ";
@@ -76,19 +95,19 @@ exports.mechanics_get = (req, res, next) => {
 
   if (filterValues) {
     Object.keys(filterValues).forEach((key) => {
-      if (filterValues[key]) {
+      if (filterValues[key] && key !== 'mechanic_status_value') {
         queryText += queryParams.length ? " AND " : " WHERE ";
-        queryText += `${key} = $${queryParams.length + 1}`;
+        queryText += `m.${key} = $${queryParams.length + 1}`;
         queryParams.push(filterValues[key]);
       }
     });
   }
 
   if (sortColumn.column) {
-    queryText += ` ORDER BY ${sortColumn.column} `;
+    queryText += ` ORDER BY m.${sortColumn.column} `;
     queryText += sortColumn.value ? ` DESC` : ` ASC`;
   } else {
-    queryText += ` ORDER BY mech_created_at DESC`;
+    queryText += ` ORDER BY m.mech_created_at DESC`;
   }
 
   const countQueryText = queryText + ";";
@@ -109,13 +128,6 @@ exports.mechanics_get = (req, res, next) => {
 
     pool.query(queryText, queryParams, (err, result) => {
       if (err) return res.json(err);
-
-      // result.rows.forEach((mechanic) => {
-      //   if (mechanic.mech_gif) {
-      //     mechanic.mech_gif_url = `${process.env.UPLOADS}/${mechanic.mech_gif}`;
-      //   }
-      // });
-
       return res.json({ mechanics: result.rows, count: count });
     });
   });
