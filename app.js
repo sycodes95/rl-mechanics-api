@@ -74,22 +74,11 @@ const localStrategy = new LocalStrategy({ usernameField: 'user_email', passwordF
   });
 });
 
-// const googleStrategy = new LocalStrategy({usernameField: 'user_email', passwordField: 'user_first_name'}, (user_email, user_first_name,  done) => {
-  
-//   pool.query('SELECT * FROM users WHERE user_email = $1', [user_email], (err, user) => {
-//     if (err) {
-//       return done(err);
-//     }
-//     return done(null, user);
-    
-//   });
-// });
-
 const googleStrategy = new GoogleStrategy(
   {
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: 'http://localhost:5000/auth/google/callback',
+    callbackURL: `${process.env.API_DOMAIN}/auth/google/callback`,
     passReqToCallback : true,
     scope: ['email', 'profile']
   },
@@ -145,6 +134,7 @@ app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: `${process.env.CLIENT_DOMAIN}/log-in` }),
   function(req, res) {
     res.cookie('token', req.token, { httpOnly: true });
+    //prod : res.cookie('token', req.token, { httpOnly: true, secure: true, sameSite: 'none',  path:'/'})
     res.redirect(`${process.env.CLIENT_DOMAIN}`);
   });
 

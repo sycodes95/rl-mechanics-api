@@ -45,7 +45,7 @@ exports.verify_token_get = (req,res,next) => {
       user = user.user.rows[0]
       delete user.user_password
       if(err) { 
-        return res.status(401).json({error: "Invalid token"});
+        return res.json({error: "Invalid token"});
       } else {
         
         res.json({
@@ -55,7 +55,7 @@ exports.verify_token_get = (req,res,next) => {
       }
     })
   } else {
-    return res.status(401).json({error: "Invalid token"}); 
+    return res.json({error: "No Token"}); 
   }
 }
 
@@ -145,6 +145,8 @@ exports.log_in_post = (req, res, next) =>{
 
       res.cookie('token', token, { httpOnly: true });
 
+      //prod : res.cookie('token', token, { httpOnly: true , secure: true, sameSite: 'none'});
+
       return res.json({ status: 'Logged in' });
     })
   })(req,res,next)
@@ -156,6 +158,7 @@ exports.log_out_get = (req,res,next) =>{
       return res.json({error: err})
     }
     res.clearCookie('token');
+    //prod : res.clearCookie('token', {httpOnly: true, secure: true, sameSite: 'none', path: '/'})
     res.json({logout: 'Log out successful'})
   })
 }
