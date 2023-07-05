@@ -17,7 +17,7 @@ require('dotenv').config()
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
-const { google_log_in_post } = require('./controllers/usersController');
+const { cookieExpiration } = require('./cookie');
 
 
 const app = express();
@@ -39,9 +39,6 @@ app.use(cors({
   'https://rlmechanics.com'
   ]
 }));
-
-
-
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
@@ -133,11 +130,14 @@ app.get('/auth/google', passport.authenticate('google', ['email', 'profile']))
 app.get('/auth/google/callback', 
   passport.authenticate('google', { failureRedirect: `${process.env.CLIENT_DOMAIN}/log-in` }),
   function(req, res) {
-    res.cookie('token', req.token, { httpOnly: true });
-    //prod : res.cookie('token', req.token, { httpOnly: true, secure: true, sameSite: 'none',  path:'/'})
-    res.redirect(`${process.env.CLIENT_DOMAIN}`);
-  });
 
+    //local : res.cookie('token', req.token, { httpOnly: true });
+    //prod : res.cookie('token', req.token, { httpOnly: true, secure: true, sameSite: 'none',  path:'/'})
+    res.cookie('token', req.token, { httpOnly: true , maxAge: cookieExpiration});
+    
+    res.redirect(`${process.env.CLIENT_DOMAIN}`);
+
+  });
 
 passport.serializeUser(function(user, done) {
   console.log('ser');

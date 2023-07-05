@@ -7,6 +7,7 @@ const bcrypt = require("bcryptjs")
 const jwt = require('jsonwebtoken')
 
 const { check, body, validationResult } = require("express-validator");
+const { cookieExpiration } = require('../cookie');
 
 require('dotenv').config()
 
@@ -113,10 +114,7 @@ exports.register_post = [
         }
         res.json({user: result.rows[0]});
       });
-      
-      
     })
-    
   }
 ];
 
@@ -138,14 +136,12 @@ exports.log_in_post = (req, res, next) =>{
         return next(errors)
       }
       
-      // const token = jwt.sign({ user: user}, process.env.JWT_SECRETKEY);
-      
-      // return res.json({token})
       const token = jwt.sign( {user}, process.env.JWT_SECRETKEY, {expiresIn: '1D'} );
 
-      res.cookie('token', token, { httpOnly: true });
+      res.cookie('token', token, { httpOnly: true, maxAge: cookieExpiration });
 
       //prod : res.cookie('token', token, { httpOnly: true , secure: true, sameSite: 'none'});
+      //local : res.cookie('token', token, { httpOnly: true });
 
       return res.json({ status: 'Logged in' });
     })
@@ -157,8 +153,11 @@ exports.log_out_get = (req,res,next) =>{
     if(err) {
       return res.json({error: err})
     }
-    res.clearCookie('token');
+
     //prod : res.clearCookie('token', {httpOnly: true, secure: true, sameSite: 'none', path: '/'})
+    //local : res.clearCookie('token');
+
+    res.clearCookie('token');
     res.json({logout: 'Log out successful'})
   })
 }
